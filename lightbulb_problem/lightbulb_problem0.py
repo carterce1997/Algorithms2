@@ -32,87 +32,89 @@ def is_satisfied(clauses, literals):
 
 # read data
 # filename = input('Problem specification file: ')
-filename = 'ex2.txt'
+filename = 'ex1.txt'
 problem_name = os.path.splitext(filename)[0]
 num_literals, num_clauses, clauses = read_circuit(filename)
 
-edges = defaultdict(list)
-edges_backwards = defaultdict(list)
+edges = defaultdict(set)
+edges_backwards = defaultdict(set)
 for clause in clauses:
     (a, b) = clause
-    edges[-a].append(b)
-    edges[-b].append(a)
+    edges[-a].add(b)
+    edges[-b].add(a)
 
-    edges_backwards[b].append(-a)
-    edges_backwards[a].append(-b)
+    edges_backwards[b].add(-a)
+    edges_backwards[a].add(-b)
+edges = dict(edges)
 
-def dfs(graph, node, visited, finished):
-    if node not in visited:
-        visited.append(node)
-        for n in graph[node]:
-            visited, finished = dfs(graph, n, visited, finished)
-        finished.append(node)
+def dfs(graph, start, visited = None, finished = None):
+    if visited is None:
+        visited = set()
+    if finished is None:
+        finished = list()
+    visited.add(start)
+    for next in graph.get(start, set()) - visited:
+        dfs(graph, next, visited, finished)
+    finished.append(start)
     return visited, finished
 
 # compute forward finishing times
-all_literals = [i for i in range(1, 1 + num_literals)]
-all_literals.extend([-i for i in range(1, 1 + num_literals)])
-visited = []
-finished = []
-for i in all_literals:
+visited = set()
+finished = list()
+for i in edges:
     visited, finished = dfs(edges, i, visited, finished)
+    # if sps is not '':
+        # print(sps)
 
 # compute sccs backwards in reverse order of finishing time
-visited_backwards = []
+visited_backwards = set()
 sccs = []
 while finished:
-    node = finished.pop(-1)
+    node = finished.pop()
     if node not in visited_backwards:
-        scc, _ = dfs(edges_backwards, node, [], [])
+        scc, _ = dfs(edges_backwards, node, set(), list())
         sccs.append(scc)
-        visited_backwards.extend(scc)
+        visited_backwards.update(scc)
 
-print([len(x) for x in sccs])
+# find largest sccs (some are subcomponents)
+largest_sccs = []
+for scc in sccs:
+    include_new = True
+    for scc2 in largest_sccs:
+        if scc < scc2:
+            include_new = False
 
-# i = 1
-# all_literals = [i for i in range(1, num_literals + 1)]
-# dfs_order = dict()
-# visited = []
-# while True:
-#     visited = dfs(edges, i, visited)
-#     dfs_order[i] = visited
-#     unvisited = [i for i in all_literals if i not in visited]
-#     if len(unvisited) == 0:
-#         break
-#     else:
-#         i = min(unvisited)
-#
-# print(dfs_order)
+    if include_new:
+        largest_sccs.append(scc)
 
-# buff = open('output.txt', 'w')
-# for x in range(1, num_literals + 1):
-#     visited_switches = []
-#     xi = x
-#     buff.writelines(' '.join(['Switch', str(x), '\n\n']))
-#     while True:
-#         visited_switches.append(xi)
-#         next_switches = [s for s in edges[xi] if s not in visited_switches]
-#         buff.writelines(' '.join([str(xi), '->', str(next_switches), '\n']))
-#         if next_switches == [-x]:
-#             raise StopIteration
-#         else:
-#             if next_switches == []:
-#                 buff.writelines('\n')
-#                 break
-#             else:
-#                 xi = next_switches[0] # go to another switch
-# buff.close()
+    sccs_to_remove = []
+    for scc2 in largest_sccs:
+        if scc2 < scc:
+            sccs_to_remove.append(scc2)
 
-# save results
-# with open(''.join([problem_name, '_results.txt']), 'w+') as f:
-#     if circuit_satisfied:
-#         print_literals = list(map(str, literals))
-#         f.write('TRUE:\n')
-#         f.writelines([l + '\n' for l in print_literals])
-#     else:
-#         f.write(' '.join(['FALSE: p >', str(1 - probability_threshold)]))
+    for scc in sccs_to_remove:
+        largest_sccs.remove(scc)
+
+def dfs_paths(graph, start, goal):
+    stack = [(start, [start])]
+    while stack:
+        (vertex, path) = stack.pop()
+        for next in graph.get(vertex, set()) - set(path):
+            if next is goal:
+                return path + [next]
+            else:
+                stack.append((next, path + [next]))
+
+f = open(problem_name + '_output.txt', 'w')
+for i in scc:
+    if i in scc and -i in scc:
+        f.writelines('Contradiction: ' + str(i) + ' -> ' + str(-i) + '\n')
+        path = dfs_paths(edges, i, -i)
+        path = ' -> '.join(list(map(str, path)))
+        f.writelines(path)
+
+
+# print(is_satisfied(clauses, largest_sccs[0]))
+
+
+f.close()
