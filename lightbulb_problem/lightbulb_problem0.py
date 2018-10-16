@@ -32,7 +32,7 @@ def is_satisfied(clauses, literals):
 
 # read data
 # filename = input('Problem specification file: ')
-filename = 'ex1.txt'
+filename = 'ex2.txt'
 problem_name = os.path.splitext(filename)[0]
 num_literals, num_clauses, clauses = read_circuit(filename)
 
@@ -101,20 +101,47 @@ def dfs_paths(graph, start, goal):
         (vertex, path) = stack.pop()
         for next in graph.get(vertex, set()) - set(path):
             if next is goal:
-                return path + [next]
+                yield path + [next]
             else:
                 stack.append((next, path + [next]))
 
+
 f = open(problem_name + '_output.txt', 'w')
-for i in scc:
-    if i in scc and -i in scc:
-        f.writelines('Contradiction: ' + str(i) + ' -> ' + str(-i) + '\n')
-        path = dfs_paths(edges, i, -i)
-        path = ' -> '.join(list(map(str, path)))
-        f.writelines(path)
 
+contradiction = False
+for scc in largest_sccs:
+    if contradiction:
+        break
+    for i in scc:
+        if i in scc and -i in scc:
+            contradiction = True
+            f.writelines('Contradiction: ' + str(i) + ' -> ' + str(-i) + '\n\n')
+            path = next(dfs_paths(edges, i, -i))
+            for first, second in zip(path, path[1:]):
+                implication = str(first) + ' -> ' + str(second)
+                if (-first, second) in clauses:
+                    reason = str((-first, second))
+                    line_number = str(clauses.index((-first, second)) + 3)
+                elif (second, -first) in clauses:
+                    reason = str((second, -first))
+                    line_number = str(clauses.index((second, -first)) + 3)
+                else:
+                    f.writelines('Error in proof!')
+                    break
+                f.writelines('By ' + reason + ' on line ' + line_number + ', ' + implication + '.\n')
+            f.writelines('\nTherefore, the circuit is unsatisfiable.')
+            break
 
-# print(is_satisfied(clauses, largest_sccs[0]))
-
+if not contradiction:
+    solution = largest_sccs[0]
+    f.writelines('Given literals\n' + '\n'.join(map(str, solution)) + '\n')
+    f.writelines('We have that\n\n')
+    for clause in clauses:
+        for literal in solution:
+            if literal in clause:
+                line = str(clauses.index(clause) + 3)
+                f.writelines(str(literal) + ' satisfies ' + str(clause) + ' on line ' + line + '.\n')
+                break
+    f.writelines('\nSo the circuit is satisfiable.')
 
 f.close()

@@ -1,0 +1,10 @@
+Given literals
+1
+3
+-2
+We have that
+
+1 satisfies (1, 2) on line 3.
+3 satisfies (-1, 3) on line 4.
+
+So the circuit is satisfiable.
