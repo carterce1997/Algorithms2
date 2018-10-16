@@ -32,40 +32,81 @@ def is_satisfied(clauses, literals):
 
 # read data
 # filename = input('Problem specification file: ')
-filename = 'ex1.txt'
+filename = 'ex2.txt'
 problem_name = os.path.splitext(filename)[0]
 num_literals, num_clauses, clauses = read_circuit(filename)
 
 edges = defaultdict(list)
+edges_backwards = defaultdict(list)
 for clause in clauses:
     (a, b) = clause
     edges[-a].append(b)
     edges[-b].append(a)
 
-print(edges)
+    edges_backwards[b].append(-a)
+    edges_backwards[a].append(-b)
 
-with open('output.txt', 'w') as buff:
-    visited_switches = []
-    for x in range(1, num_literals + 1):
-        xi = x
-        buff.writelines(' '.join(['Switch', str(x), '\n\n']))
-        while True:
-            visited_switches.append(xi)
-            next_switches = edges[xi]
-            if -x in next_switches and x not in next_switches:
-                print('contradiction')
-                break # contradiction
-            else:
-                # pick a new switch to visit
-                unvisited_switches = [s for s in next_switches if s not in visited_switches]
-                buff.writelines(' '.join([str(xi), '->', str(unvisited_switches), '\n']))
-                if unvisited_switches == []:
-                    print('done')
-                    buff.writelines('\n')
-                    break
-                else:
-                    xi = unvisited_switches[0] # go to another switch
-buff.close()
+def dfs(graph, node, visited, finished):
+    if node not in visited:
+        visited.append(node)
+        for n in graph[node]:
+            visited, finished = dfs(graph, n, visited, finished)
+        finished.append(node)
+    return visited, finished
+
+# compute forward finishing times
+all_literals = [i for i in range(1, 1 + num_literals)]
+all_literals.extend([-i for i in range(1, 1 + num_literals)])
+visited = []
+finished = []
+for i in all_literals:
+    visited, finished = dfs(edges, i, visited, finished)
+
+# compute sccs backwards in reverse order of finishing time
+visited_backwards = []
+sccs = []
+while finished:
+    node = finished.pop(-1)
+    if node not in visited_backwards:
+        scc, _ = dfs(edges_backwards, node, [], [])
+        sccs.append(scc)
+        visited_backwards.extend(scc)
+
+print([len(x) for x in sccs])
+
+# i = 1
+# all_literals = [i for i in range(1, num_literals + 1)]
+# dfs_order = dict()
+# visited = []
+# while True:
+#     visited = dfs(edges, i, visited)
+#     dfs_order[i] = visited
+#     unvisited = [i for i in all_literals if i not in visited]
+#     if len(unvisited) == 0:
+#         break
+#     else:
+#         i = min(unvisited)
+#
+# print(dfs_order)
+
+# buff = open('output.txt', 'w')
+# for x in range(1, num_literals + 1):
+#     visited_switches = []
+#     xi = x
+#     buff.writelines(' '.join(['Switch', str(x), '\n\n']))
+#     while True:
+#         visited_switches.append(xi)
+#         next_switches = [s for s in edges[xi] if s not in visited_switches]
+#         buff.writelines(' '.join([str(xi), '->', str(next_switches), '\n']))
+#         if next_switches == [-x]:
+#             raise StopIteration
+#         else:
+#             if next_switches == []:
+#                 buff.writelines('\n')
+#                 break
+#             else:
+#                 xi = next_switches[0] # go to another switch
+# buff.close()
 
 # save results
 # with open(''.join([problem_name, '_results.txt']), 'w+') as f:
