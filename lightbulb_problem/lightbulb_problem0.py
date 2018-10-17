@@ -1,6 +1,4 @@
 
-import numpy as np # for easy randomization
-import progressbar # for entertainment
 import os.path
 from collections import defaultdict
 
@@ -32,7 +30,7 @@ def is_satisfied(clauses, literals):
 
 # read data
 # filename = input('Problem specification file: ')
-filename = 'ex2.txt'
+filename = 'example2.txt'
 problem_name = os.path.splitext(filename)[0]
 num_literals, num_clauses, clauses = read_circuit(filename)
 
