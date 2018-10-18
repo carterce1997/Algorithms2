@@ -29,21 +29,21 @@ def is_satisfied(clauses, literals):
     return True
 
 # read data
-# filename = input('Problem specification file: ')
-filename = 'example2.txt'
+filename = input('Problem specification file: ')
 problem_name = os.path.splitext(filename)[0]
 num_literals, num_clauses, clauses = read_circuit(filename)
 
-edges = defaultdict(set)
-edges_backwards = defaultdict(set)
+# dump clauses into a graph
+graph = defaultdict(set)
+graph_backwards = defaultdict(set)
 for clause in clauses:
     (a, b) = clause
-    edges[-a].add(b)
-    edges[-b].add(a)
+    graph[-a].add(b)
+    graph[-b].add(a)
 
-    edges_backwards[b].add(-a)
-    edges_backwards[a].add(-b)
-edges = dict(edges)
+    graph_backwards[b].add(-a)
+    graph_backwards[a].add(-b)
+graph = dict(graph)
 
 def dfs(graph, start, visited = None, finished = None):
     if visited is None:
@@ -59,10 +59,8 @@ def dfs(graph, start, visited = None, finished = None):
 # compute forward finishing times
 visited = set()
 finished = list()
-for i in edges:
-    visited, finished = dfs(edges, i, visited, finished)
-    # if sps is not '':
-        # print(sps)
+for i in graph:
+    visited, finished = dfs(graph, i, visited, finished)
 
 # compute sccs backwards in reverse order of finishing time
 visited_backwards = set()
@@ -70,7 +68,7 @@ sccs = []
 while finished:
     node = finished.pop()
     if node not in visited_backwards:
-        scc, _ = dfs(edges_backwards, node, set(), list())
+        scc, _ = dfs(graph_backwards, node, set(), list())
         sccs.append(scc)
         visited_backwards.update(scc)
 
@@ -104,8 +102,8 @@ def dfs_paths(graph, start, goal):
                 stack.append((next, path + [next]))
 
 
+# determine if a contradiction exists
 f = open(problem_name + '_output.txt', 'w')
-
 contradiction = False
 for scc in largest_sccs:
     if contradiction:
@@ -114,7 +112,7 @@ for scc in largest_sccs:
         if i in scc and -i in scc:
             contradiction = True
             f.writelines('Contradiction: ' + str(i) + ' -> ' + str(-i) + '\n\n')
-            path = next(dfs_paths(edges, i, -i))
+            path = next(dfs_paths(graph, i, -i))
             for first, second in zip(path, path[1:]):
                 implication = str(first) + ' -> ' + str(second)
                 if (-first, second) in clauses:
@@ -130,6 +128,7 @@ for scc in largest_sccs:
             f.writelines('\nTherefore, the circuit is unsatisfiable.')
             break
 
+# otherwise, provide a satisfying example
 if not contradiction:
     solution = largest_sccs[0]
     f.writelines('Given literals\n' + '\n'.join(map(str, solution)) + '\n')
@@ -141,5 +140,5 @@ if not contradiction:
                 f.writelines(str(literal) + ' satisfies ' + str(clause) + ' on line ' + line + '.\n')
                 break
     f.writelines('\nSo the circuit is satisfiable.')
-
+    
 f.close()
