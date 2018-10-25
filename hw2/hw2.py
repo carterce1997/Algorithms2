@@ -17,8 +17,12 @@ with open('prob_heads.txt', 'r') as f:
     line = f.read()
     f.close()
 
-prob_heads = np.array([float(p) for p in line.split(' ')])
-print('Probability of heads:', prob_heads)
+emission_matrix = np.zeros((2,2))
+for row, p in enumerate(line.split(' ')):
+    emission_matrix[row, 0] = float(p)
+    emission_matrix[row, 1] = 1 - float(p)
+    
+print('Emission matrix:', emission_matrix)
 
 # read coin tosses
 with open('coin_tosses.txt', 'r') as f:
