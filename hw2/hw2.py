@@ -7,10 +7,14 @@ with open('chain_ex.txt', 'r') as f:
     lines = f.readlines()
     f.close()
 
-chain = np.zeros((2,2))
-for row, line in enumerate(lines):
-    for col, p in enumerate(line.split()):
-        chain[row, col] = float(p)
+chain = []
+for line in lines:
+    subchain = []
+    for p in line.split():
+        subchain.append(float(p))
+    if not subchain == []:
+        chain.append(subchain)
+chain = np.array(chain)
 print('Transition matrix:', chain)
 
 # read probability of heads
@@ -18,10 +22,7 @@ with open('emit_ex.txt', 'r') as f:
     line = f.read()
     f.close()
 
-emit = np.zeros((2,2))
-for col, p in enumerate(line.split()):
-    emit[0, col] = float(p)
-    emit[1, col] = 1 - float(p)
+emit = np.array(list(map(lambda x: [float(x)], line.split())))
     
 print('Emission matrix:', emit)
 
