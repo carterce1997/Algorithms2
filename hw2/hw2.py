@@ -22,7 +22,7 @@ with open('emit_ex.txt', 'r') as f:
     line = f.read()
     f.close()
 
-emit = np.array(list(map(lambda x: [float(x)], line.split())))
+emit = np.array(list(map(float, line.split())))
     
 print('Emission matrix:', emit)
 
