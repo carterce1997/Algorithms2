@@ -1,6 +1,12 @@
 import numpy
 
-def compute_transitions(input_str, trasition_mat, emission_mat):
+def compute_transitions(input_str, trasition_mat, emissions):
+
+
+    emission_mat = numpy.zeros(shape=(len(emissions),len(emissions)))
+    for j in range(len(emissions)):
+        emission_mat[0,j] = emissions[j]
+        emission_mat[1,j] = 1 - emissions[j] 
 
     rows = len(emission_mat)
     cols = len(input_str)
