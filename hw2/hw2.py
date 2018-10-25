@@ -1,36 +1,36 @@
 import numpy as np
 
 # READ PROBLEM #
-# read transition matrix
-with open('transition_matrix.txt', 'r') as f:
+# read chain
+with open('chain_ex.txt', 'r') as f:
     lines = f.readlines()
     f.close()
 
-transition_matrix = np.zeros((2,2))
+chain = np.zeros((2,2))
 for row, line in enumerate(lines):
-    for col, p in enumerate(line.split(' ')):
-        transition_matrix[row, col] = float(p)
-print('Transition matrix:', transition_matrix)
+    for col, p in enumerate(line.split()):
+        chain[row, col] = float(p)
+print('Transition matrix:', chain)
 
 # read probability of heads
-with open('prob_heads.txt', 'r') as f:
+with open('emit_ex.txt', 'r') as f:
     line = f.read()
     f.close()
 
-emission_matrix = np.zeros((2,2))
-for row, p in enumerate(line.split(' ')):
-    emission_matrix[row, 0] = float(p)
-    emission_matrix[row, 1] = 1 - float(p)
+emit = np.zeros((2,2))
+for col, p in enumerate(line.split()):
+    emit[0, col] = float(p)
+    emit[1, col] = 1 - float(p)
     
-print('Emission matrix:', emission_matrix)
+print('Emission matrix:', emit)
 
 # read coin tosses
-with open('coin_tosses.txt', 'r') as f:
+with open('obs_ex.txt', 'r') as f:
     contents = f.read()
     f.close()
 
-# 0 if heads, 1 if tails (for indices in matrices)
-coin_tosses = np.array([0 if t is 'H' else 1 for t in list(contents.strip())])
+# 1 if heads, 0 if tails
+coin_tosses = np.array(list(map(int, contents.split(' '))))
 print('Coin tosses:', coin_tosses)
 
 # ALGORITHMIC IMPLEMENTATION #
