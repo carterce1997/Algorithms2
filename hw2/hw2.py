@@ -1,6 +1,6 @@
 import numpy as np
 
-
+# READ PROBLEM #
 # read transition matrix
 with open('transition_matrix.txt', 'r') as f:
     lines = f.readlines()
@@ -32,4 +32,4 @@ with open('coin_tosses.txt', 'r') as f:
 coin_tosses = np.array(list(contents.strip()))
 print('Coin tosses:', coin_tosses)
 
-
+# ALGORITHMIC IMPLEMENTATION #
