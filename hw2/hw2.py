@@ -1,4 +1,5 @@
 import numpy as np
+from compute_transitions import compute_transitions
 
 # READ PROBLEM #
 # read chain
@@ -35,4 +36,4 @@ coin_tosses = np.array(list(map(int, contents.split(' '))))
 print('Coin tosses:', coin_tosses)
 
 # ALGORITHMIC IMPLEMENTATION #
-
+compute_transitions(coin_tosses, chain, emit)
