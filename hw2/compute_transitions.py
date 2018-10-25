@@ -2,27 +2,45 @@ import numpy
 
 def compute_transitions(input_str, trasition_mat, emission_mat):
 
-    rows = len(input_str)
-    cols = len(emission_mat)
+    rows = len(emission_mat)
+    cols = len(input_str)
 
     transitions = numpy.zeros(shape=(rows,cols))
     transitions_indices = numpy.zeros(shape=(rows,cols))
 
-    transitions[0,0] = emission_mat[1,input_str[0]] * 0.5
-    transitions[1,0] = emission_mat[0,input_str[0]] * 0.5
+    transitions[0,0] = 1
 
-    for x in range(1,rows):
-        for y in range(0,cols):
-            emission_prob = emission_mat[y,input_str[x]]
-            prob_min = transitions[0,x-1] * trasition_mat[0,x] * emission_prob
-            prob_min_idx = 0
-            for y2 in range(0,cols):
-                prob = transitions[y2,x-1] * trasition_mat[y2,x] * emission_prob
-                if prob > prob_min:
-                    prob_min = prob
-                    prob_min_idx = y2
-            transitions[x,y] = prob_min
-            transitions_indices[x,y] = prob_min_idx
+    #for i in range(0,rows):
+    #    transitions[i,0] = emission_mat[input_str[0],i] * (1.0/float(rows))
 
-    print(transitions)
+    for x in range(1,cols):
+        for y in range(0,rows):
+            emission_prob = emission_mat[input_str[x],y]
+            prob_max = transitions[0,x-1] * trasition_mat[0,y] * emission_prob
+            prob_max_idx = 0
+            for y2 in range(1,rows):
+                prob = transitions[y2,x-1] * trasition_mat[y2,y] * emission_prob
+                if prob > prob_max:
+                    prob_max = prob
+                    prob_max_idx = y2
+            transitions[y,x] = prob_max
+            transitions_indices[y,x] = prob_max_idx
+
+    prob_max = transitions[0,cols-1]
+    prob_max_idx = 0
+    for y in range(1,rows):
+        if transitions[y,cols-1] > prob_max:
+            prob_max = transitions[y,cols-1]
+            prob_max_idx = y
+
+    p = [prob_max_idx]
+    for x in range(cols-1,0,-1):
+        prob_max_idx = transitions_indices[int(prob_max_idx),x]
+        p.append(int(prob_max_idx))
+
+    print('\n')
+    print('Most probable state sequence')
+    print(p)
+
+    
 
