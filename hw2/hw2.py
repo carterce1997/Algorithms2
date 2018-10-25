@@ -29,7 +29,9 @@ with open('coin_tosses.txt', 'r') as f:
     contents = f.read()
     f.close()
 
-coin_tosses = np.array(list(contents.strip()))
+# 0 if heads, 1 if tails (for indices in matrices)
+coin_tosses = np.array([0 if t is 'H' else 1 for t in list(contents.strip())])
 print('Coin tosses:', coin_tosses)
 
 # ALGORITHMIC IMPLEMENTATION #
+
