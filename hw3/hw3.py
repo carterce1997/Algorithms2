@@ -2,16 +2,14 @@ import numpy as np
 
 # READ PROBLEM #
 # read graph
-lines = []
-with open('chain_ex.txt', 'r') as f:
-    lines = f.readlines()
-    f.close()
+graphlines = []
+with open('chain_ex.txt', 'r') as inputFile:
+    graphlines = inputFile.readlines()
+    inputFile.close()
 
-chain = np.zeros((2,2))
-for row, line in enumerate(lines):
-    for col, p in enumerate(line.split()):
-        chain[row, col] = float(p)
-print('Transition matrix:', chain)
+for graphline in enumerate(graphlines):
+    print( graphline.split() ):
+        
 
 # read probability of heads
 with open('emit_ex.txt', 'r') as f:
