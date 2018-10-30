@@ -28,6 +28,8 @@ def dfs(ResidualNetwork, S, T, minCapacity, curPath = None):
     curPath.pop(0)            
     return None
 
+def bfs(ResidualNetwork, S, T, minCapacity, curPath = None):
+    
     
 def FordFulkerson(Graph, ResidualNetwork, source, sink):
     maxFlow = 0
@@ -42,6 +44,9 @@ def FordFulkerson(Graph, ResidualNetwork, source, sink):
             ResidualNetwork[end][start] -= minCapacity[0]             
             
         maxFlow += minCapacity[0]
+        print('Maximizing flow of', maxFlow, 'on path', str(augmentedPath))
+        
+        # For each edge in augmentedPath
         #print("source: " + str(source) + "  sink: " + str(sink))
         #print("Augmented path: " + str(augmentedPath))
         #print("ResidualNetwork: " + str(ResidualNetwork))
