@@ -31,23 +31,17 @@ def compute_transitions(input_str, trasition_mat, emissions):
             emission_prob = emission_mat[input_str[x],y]
             transition_prob = trasition_mat[y,indices[0,x-1]]
             prob = transition_prob * emission_prob 
-            
-            #transitions[0,x-1] *
-
-            #prob =  trasition_mat[indices[0,x-1],y] * emission_prob #transitions[0,x-1] *
-            #for y2 in range(1,rows):
-            #    prob = trasition_mat[y2,y] * emission_prob #transitions[y2,x-1] *
+        
             if prob > prob_max:
                 prob_max = prob
                 prob_max_idx = y
             transitions[y,x] = prob
         indices[:,x] = prob_max_idx
 
-    print(indices)
     print(transitions)
     print('\n')
     print('Most probable state sequence')
-    #print(p)
+    print(indices[0,:])
 
     prob_max = transitions[0,cols-1]
     prob_max_idx = 0
@@ -60,3 +54,5 @@ def compute_transitions(input_str, trasition_mat, emissions):
     for x in range(cols-1,0,-1):
         prob_max_idx = indices[int(prob_max_idx),x]
         p.append(int(prob_max_idx))
+
+    #print(p)
