@@ -10,8 +10,8 @@ def compute_transitions(input_str, trasition_mat, emissions):
     num_hidden_states = emission_mat.shape[1]
     len_input_str = len(input_str)
 
-    transition_probabilities = np.zeros(shape=(num_hidden_states,len_input_str+1))
-    indices = np.zeros(len_input_str+1, dtype=int)
+    transition_probabilities = np.zeros(shape=(num_hidden_states,len_input_str))
+    indices = np.zeros(len_input_str, dtype=int)
 
     transition_probabilities[0,0] = 1
     indices[0] = 0
