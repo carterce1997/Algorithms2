@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 from collections import defaultdict
+from pprint import pprint 
 
 filename = sys.argv[1]
 
@@ -49,7 +50,7 @@ def FordFulkerson(Graph, ResidualNetwork, source, sink):
         minCapacity = [sys.maxsize]
         augmentedPath = dfs(ResidualNetwork, source, sink, minCapacity)
     print("Max flow: " + str(maxFlow))
-    print(ResidualNetwork)
+    pprint(ResidualNetwork)
 
 
 
