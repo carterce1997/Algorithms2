@@ -1,5 +1,8 @@
 import numpy as np
+import sys
 from collections import defaultdict
+
+filename = sys.argv[1]
 
 # Example of graph will be:
 # { 
@@ -7,25 +10,53 @@ from collections import defaultdict
 #   1: {2: 10, 3: 10}, 
 #   2: {3: 20}
 # }
-def dfs(Graph, S, T, visited = None):
-    if visited is None:
-        visited = list()
+def dfs(ResidualNetwork, S, T, minCapacity, curPath = None):
+    if curPath is None:
+        curPath = list()
+    curPath.insert(0, S)    
     if S == T:
-        print(visited)
-        return
-    visited.append(S)    
-    for dest in Graph[S]:
-        capacity = Graph[S][dest]
-        if dest not in visited:
-            dfs(Graph, dest, T, visited)
-    visited.remove(S)
+        return curPath
+    for dest in ResidualNetwork[S]:
+        curFlow = ResidualNetwork[S][dest]
+        if curFlow > 0 and dest not in curPath:
+            minCapacity[0] = min(minCapacity[0], curFlow)
+            path = dfs(ResidualNetwork, dest, T, minCapacity, curPath)
+            if path is not None:
+                return path
+
+    curPath.pop(0)            
+    return None
+
     
+def FordFulkerson(Graph, ResidualNetwork, source, sink):
+    maxFlow = 0
+    minCapacity = [sys.maxsize]
+    augmentedPath = dfs(ResidualNetwork, source, sink, minCapacity)
+    while augmentedPath is not None:
+        # For each edge in augmentedPath
+        for i in range( len(augmentedPath)-1 ):
+            start = augmentedPath[i]
+            end = augmentedPath[i+1]
+            ResidualNetwork[start][end] += minCapacity[0] 
+            ResidualNetwork[end][start] -= minCapacity[0]             
+            
+        maxFlow += minCapacity[0]
+        #print("source: " + str(source) + "  sink: " + str(sink))
+        #print("Augmented path: " + str(augmentedPath))
+        #print("ResidualNetwork: " + str(ResidualNetwork))
+        #print()
+        
+        minCapacity = [sys.maxsize]
+        augmentedPath = dfs(ResidualNetwork, source, sink, minCapacity)
+    print("Max flow: " + str(maxFlow))
+    print(ResidualNetwork)
 
 
-# READ PROBLEM #
-# read graph
+
+
+# READ GRAPH #
 fileLines = []
-with open('graph1.txt', 'r') as inputFile:
+with open(filename, 'r') as inputFile:
     fileLines = inputFile.readlines()
     inputFile.close()
 
@@ -34,14 +65,32 @@ for fileLine in fileLines:
     graphlines.append( fileLine.split() )
 
 Graph = defaultdict(dict)
+ResidualNetwork = defaultdict(dict)
 for i in range( 1, len(graphlines)-2):
     source = int(graphlines[i][0])
     dest = int(graphlines[i][2])
     capacity = int(graphlines[i][3].split("\"")[1])
+    # Initialize graph unchanged.
     Graph[source].update({dest : capacity})
+
+    # Create starting residual network.
+    ResidualNetwork[source].update({dest : capacity})
+    ResidualNetwork[dest].update({source : 0})
+
+ResidualNetwork = dict(ResidualNetwork)
 Graph = dict(Graph)
 
 S = int(graphlines[1][0])
 T = int(graphlines[len(graphlines)-3][2])
 
-dfs(Graph, S, T)
+#print("Before")
+#print(Graph)
+#print(ResidualNetwork)
+#print()
+
+FordFulkerson(Graph, ResidualNetwork, S, T)
+
+
+#for u in Graph:
+#    for v in Graph[u]:
+#        print(v)
