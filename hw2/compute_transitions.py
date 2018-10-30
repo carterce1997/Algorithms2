@@ -40,4 +40,3 @@ def compute_transitions(input_str, trasition_mat, emissions):
 
     print('Most probable state sequence:', indices)
     print('Transition probabilities:\n', transition_probabilities.T)
-
