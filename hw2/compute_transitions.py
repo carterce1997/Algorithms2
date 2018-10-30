@@ -1,20 +1,20 @@
-import numpy
+import numpy as np
 
 def compute_transitions(input_str, trasition_mat, emissions):
 
-    emission_mat = numpy.zeros(shape=(len(emissions),len(emissions)))
-    for j in range(len(emissions)):
-        emission_mat[0,j] = emissions[j]
-        emission_mat[1,j] = 1 - emissions[j] 
+    emission_mat = np.zeros(shape=(len(emissions),len(emissions)))
+    for j, emission_probability in enumerate(emissions):
+        emission_mat[0,j] = emission_probability
+        emission_mat[1,j] = 1 - emission_probability
 
-    rows = len(emission_mat)
-    cols = len(input_str)
+    num_hidden_states = emission_mat.shape[1]
+    len_input_str = len(input_str)
 
-    transitions = numpy.zeros(shape=(rows,cols+1))
-    indices = numpy.zeros(shape=(rows,cols+1),dtype=int)
+    transition_probabilities = np.zeros(shape=(num_hidden_states,len_input_str+1))
+    indices = np.zeros(len_input_str+1, dtype=int)
 
-    transitions[1,0] = 1
-    indices[:,0] = 1
+    transition_probabilities[0,0] = 1
+    indices[0] = 0
 
     # Equalizes init probability
     #for i in range(0,rows):
@@ -22,41 +22,22 @@ def compute_transitions(input_str, trasition_mat, emissions):
 
     print(emission_mat)
 
-    for x in range(1,cols):
+    for idx in range(1, len_input_str):
         prob_max = 0
         prob_max_idx = 0
 
-        for y in range(0,rows):
+        for state in range(num_hidden_states):
 
-            emission_prob = emission_mat[input_str[x],y]
-            transition_prob = trasition_mat[y,indices[0,x-1]]
+            emission_prob = emission_mat[input_str[idx], state]
+            transition_prob = trasition_mat[state, indices[idx-1]]
             prob = transition_prob * emission_prob 
             
-            #transitions[0,x-1] *
-
-            #prob =  trasition_mat[indices[0,x-1],y] * emission_prob #transitions[0,x-1] *
-            #for y2 in range(1,rows):
-            #    prob = trasition_mat[y2,y] * emission_prob #transitions[y2,x-1] *
             if prob > prob_max:
                 prob_max = prob
-                prob_max_idx = y
-            transitions[y,x] = prob
-        indices[:,x] = prob_max_idx
+                prob_max_idx = state 
+            transition_probabilities[state, idx] = prob
+        indices[idx] = prob_max_idx
 
-    print(indices)
-    print(transitions)
-    print('\n')
-    print('Most probable state sequence')
-    #print(p)
+    print('Most probable state sequence:', indices)
+    print('Transition probabilities:\n', transition_probabilities.T)
 
-    prob_max = transitions[0,cols-1]
-    prob_max_idx = 0
-    for y in range(1,rows):
-        if transitions[y,cols-1] > prob_max:
-            prob_max = transitions[y,cols-1]
-            prob_max_idx = y
-
-    p = [prob_max_idx]
-    for x in range(cols-1,0,-1):
-        prob_max_idx = indices[int(prob_max_idx),x]
-        p.append(int(prob_max_idx))
