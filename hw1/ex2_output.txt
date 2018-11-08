@@ -1,5 +1,7 @@
-Contradiction: 1 -> -1
+Contradiction: 1 -> -1 and -1 -> 1
 
+Proof:
+We will show that 1 -> -1.
 By (60, -1) on line 4350, 1 -> 60.
 By (-355, -60) on line 647, 60 -> -355.
 By (57, 355) on line 1590, -355 -> 57.
@@ -92,4 +94,4 @@ By (466, -30) on line 4608, 30 -> 466.
 By (-288, -466) on line 2326, 466 -> -288.
 By (-1, 288) on line 4775, -288 -> -1.
 
-Therefore, the circuit is unsatisfiable.
+So 1 -> -1. We will now show that -1 -> 1.

@@ -1,5 +1,7 @@
-Contradiction: 2 -> -2
+Contradiction: 2 -> -2 and -2 -> 2
 
+Proof:
+We will show that 2 -> -2.
 By (-2, 414) on line 1055, 2 -> 414.
 By (-414, -427) on line 1827, 414 -> -427.
 By (427, 413) on line 4250, -427 -> 413.
@@ -42,5 +44,25 @@ By (-135, 65) on line 3354, -65 -> -135.
 By (125, 135) on line 185, -135 -> 125.
 By (63, -125) on line 4581, 125 -> 63.
 By (-63, -2) on line 2249, 63 -> -2.
+
+So 2 -> -2. We will now show that -2 -> 2.
+By (443, 2) on line 830, -2 -> 443.
+By (-197, -443) on line 946, 443 -> -197.
+By (127, 197) on line 1835, -197 -> 127.
+By (-292, -127) on line 3099, 127 -> -292.
+By (246, 292) on line 1993, -292 -> 246.
+By (-293, -246) on line 1969, 246 -> -293.
+By (293, -421) on line 843, -293 -> -421.
+By (-65, 421) on line 3843, -421 -> -65.
+By (65, -484) on line 4029, -65 -> -484.
+By (380, 484) on line 4478, -484 -> 380.
+By (-380, 188) on line 851, 380 -> 188.
+By (-188, -386) on line 604, 188 -> -386.
+By (-66, 386) on line 2231, -386 -> -66.
+By (93, 66) on line 1832, -66 -> 93.
+By (-93, -36) on line 711, 93 -> -36.
+By (189, 36) on line 971, -36 -> 189.
+By (-189, 158) on line 1553, 189 -> 158.
+By (2, -158) on line 3656, 158 -> 2.
 
 Therefore, the circuit is unsatisfiable.

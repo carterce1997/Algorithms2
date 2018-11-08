@@ -28,13 +28,30 @@ def dfs(ResidualNetwork, S, T, minCapacity, curPath = None):
     curPath.pop(0)            
     return None
 
-def bfs(ResidualNetwork, S, T, minCapacity, curPath = None):
+
+def bfs(ResidualNetwork, S, T, minCapacity):
+    visited, queue, tree = list(), [S], defaultdict(set)
+    path = list()
+    while queue:
+        node = queue.pop(0)
+        if node not in visited:
+            visited.append(node)
+            for dest in ResidualNetwork[node]:
+                if ResidualNetwork[node][dest] > 0 and dest not in visited:
+                    minCapacity = min(minCapacity, ResidualNetwork[node, dest])
+                    queue.append(dest)
+                    tree[node].add(dest)
+                    if dest == T:
+                        visited.append(dest)
+                        return visited[::-1] # return visited in reverse order
     
-    
+
+verbose = True
 def FordFulkerson(Graph, ResidualNetwork, source, sink):
     maxFlow = 0
     minCapacity = [sys.maxsize]
-    augmentedPath = dfs(ResidualNetwork, source, sink, minCapacity)
+    # augmentedPath = dfs(ResidualNetwork, source, sink, minCapacity)
+    augmentedPath = bfs(ResidualNetwork, source, sink, minCapacity)
     while augmentedPath is not None:
         # For each edge in augmentedPath
         for i in range( len(augmentedPath)-1 ):
@@ -44,16 +61,17 @@ def FordFulkerson(Graph, ResidualNetwork, source, sink):
             ResidualNetwork[end][start] -= minCapacity[0]             
             
         maxFlow += minCapacity[0]
-        print('Maximizing flow of', maxFlow, 'on path', str(augmentedPath))
-        
-        # For each edge in augmentedPath
-        #print("source: " + str(source) + "  sink: " + str(sink))
-        #print("Augmented path: " + str(augmentedPath))
-        #print("ResidualNetwork: " + str(ResidualNetwork))
-        #print()
+        if verbose:
+            print('Current max flow:', maxFlow)
+
+            print("source: " + str(source) + "  sink: " + str(sink))
+            print("Augmented path: " + str(augmentedPath))
+            print("ResidualNetwork: " + str(ResidualNetwork))
+            print()
         
         minCapacity = [sys.maxsize]
-        augmentedPath = dfs(ResidualNetwork, source, sink, minCapacity)
+        # augmentedPath = dfs(ResidualNetwork, source, sink, minCapacity)
+        augmentedPath = bfs(ResidualNetwork, source, sink, minCapacity)
     print("Max flow: " + str(maxFlow))
     pprint(ResidualNetwork)
 
