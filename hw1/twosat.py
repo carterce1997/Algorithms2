@@ -34,133 +34,98 @@ filename = input('Problem specification file: ')
 problem_name = os.path.splitext(filename)[0]
 num_literals, num_clauses, clauses = read_circuit(filename)
 
-# dump clauses into a graph
-graph = defaultdict(set)
-graph_backwards = defaultdict(set)
+all_literals = [x for x in range(1, 1 + num_literals)]
+all_literals.extend([-x for x in range(1, 1 + num_literals)])
+
+
+graph = dict()
+for literal in all_literals:
+    graph[literal] = set()
+
 for clause in clauses:
     (a, b) = clause
     graph[-a].add(b)
     graph[-b].add(a)
 
-    graph_backwards[b].add(-a)
-    graph_backwards[a].add(-b)
-graph = dict(graph)
-graph_backwards = dict(graph_backwards)
+def transpose(graph):
+    graph_transpose = dict()
+    for literal in all_literals:
+        graph_transpose[literal] = set()
 
-def dfs(graph, start, visited = None, finished = None):
-    if visited is None:
-        visited = set()
-    if finished is None:
-        finished = list()
+    for start, neighbors in graph.items():
+        for neighbor in neighbors:
+            graph_transpose[neighbor].add(start)
+    return graph_transpose
+
+def dfs_visit(graph, start, finished, visited):
     visited.add(start)
-    for next_ in graph.get(start, set()) - visited:
-        dfs(graph, next_, visited, finished)
-    finished.append(start)
-    return visited, finished
+    for vertex in graph[start] - visited:
+        dfs_visit(graph, vertex, finished, visited)
+    if start not in finished:
+        finished.append(start)
 
-# compute forward finishing times
-visited = set()
-finished = list()
-for i in graph:
-    visited, finished = dfs(graph, i, visited, finished)
+def dfs(graph, finished = list()):
+    visited = set()
+    for vertex in graph:
+        if vertex not in visited:
+            dfs_visit(graph, vertex, finished, visited)
+    return finished
 
-# compute sccs backwards in reverse order of finishing time
-visited_backwards = set()
-sccs = []
-for node in reversed(finished):
-    if node not in visited_backwards:
-        scc, _ = dfs(graph_backwards, node, set(), list())
-        sccs.append(scc)
-        visited_backwards.update(scc)
+def scc(graph):
+    graph_transpose = transpose(graph)
+    finished = dfs(graph)
+    visited_scc = set()
 
-def dfs_paths(graph, start, goal):
-    stack = [(start, [start])]
-    while stack:
-        (vertex, path) = stack.pop()
-        for next_ in graph.get(vertex, set()) - set(path):
-            if next_ is goal:
-                yield path + [next_]
-            else:
-                stack.append((next_, path + [next_]))
+    sccs = []
+    while len(finished) > 0:
+        start = finished[-1]
+        finished_scc = list()
+        dfs_visit(graph_transpose, start, finished_scc, visited_scc)
+        for vertex in finished_scc:
+            graph_transpose[vertex] = set()
+            finished.remove(vertex)
+        sccs.append(set(finished_scc))
+    return sccs
+
+sccs = scc(graph)
 
 def bfs_paths(graph, start, goal):
     queue = [(start, [start])]
     while queue:
         (vertex, path) = queue.pop(0)
-        for next_ in graph.get(vertex, set()) - set(path):
-            if next_ is goal:
-                yield path + [next_]
+        print(path)
+        for next in graph[vertex] - set(path):
+            if next == goal:
+                yield path + [next]
             else:
-                queue.append((next_, path + [next_]))
+                queue.append((next, path + [next]))
 
-def bfs(graph, start):
-    visited, queue = set(), [start]
-    while queue:
-        vertex = queue.pop(0)
-        if vertex not in visited:
-            visited.add(vertex)
-            queue.extend(graph.get(vertex, set()) - visited)
-    return visited
-
-# determine if a contradiction exists
-f = open(problem_name + '_output.txt', 'w')
-contradiction = False
-for scc in sorted(sccs, key=len):
-    if contradiction:
-        break
-    for i in scc:
-        if i in scc and -i in scc:
-            contradiction = True
-
-            print('Searching for path ' + str(i) + ' -> ' + str(-i))
-            # i -> -i
-            f.writelines('Contradiction: ' + str(i) + ' -> ' + str(-i) + ' and ' + str(-i) + ' -> ' + str(i) + '\n\n')
-            
-            f.writelines('Proof:\n' + 'We will show that ' + str(i) + ' -> ' + str(-i) + '.\n')
-            
-            path = next(dfs_paths(graph, i, -i))
-            for first, second in zip(path, path[1:]):
-                implication = str(first) + ' -> ' + str(second)
-                if (-first, second) in clauses:
-                    reason = str((-first, second))
-                    line_number = str(clauses.index((-first, second)) + 3)
-                elif (second, -first) in clauses:
-                    reason = str((second, -first))
-                    line_number = str(clauses.index((second, -first)) + 3)
-                else:
-                    f.writelines('Error in proof!')
-                    break
-                f.writelines('By ' + reason + ' on line ' + line_number + ', ' + implication + '.\n')
-            
-            
-            f.writelines('\nSo ' + str(i) + ' -> ' + str(-i) + '. We will now show that ' + str(-i) + ' -> ' + str(i) + '.\n')
-
-            print('Searching for path ' + str(-i) + ' -> ' + str(i))
-            # -i -> i
-            print(bfs(graph, -i))
-
-            path = next(bfs_paths(graph, -i, i))
-            for first, second in zip(path, path[1:]):
-                implication = str(first) + ' -> ' + str(second)
-                if (-first, second) in clauses:
-                    reason = str((-first, second))
-                    line_number = str(clauses.index((-first, second)) + 3)
-                elif (second, -first) in clauses:
-                    reason = str((second, -first))
-                    line_number = str(clauses.index((second, -first)) + 3)
-                else:
-                    f.writelines('Error in proof!')
-                    break
-                f.writelines('By ' + reason + ' on line ' + line_number + ', ' + implication + '.\n')
-            
-            # the unavoidable conclusion
-            f.writelines('\nTherefore, the circuit is unsatisfiable.')
+bad_components = []
+for component in sccs:
+    for i in range(1, num_literals):
+        if i in component and -i in component:
+            bad_components.append(component)
             break
 
-# otherwise, provide a satisfying example
-if not contradiction:
-    solution = sorted(sccs, key=len)[0]
-    f.writelines('Given literals\n' + '\n'.join(map(str, solution)) + '\n')
+if len(bad_components) > 0:
+    contradiction = True
+else:
+    contradiction = False
+    solution = set()
+    for component in reversed(sccs):
+        include = True
+        for i in component:
+            if -i in solution:
+                include = False
+                break
+        if include:
+            solution = solution.union(component)
+
+
+
+def write_satisfaction_proof(solution, clauses, problem_name):
+    f = open(problem_name + '_output.txt', 'w')
+    f.writelines('Given literals\n' + ' '.join(map(str, solution)) + '\n')
     f.writelines('We have that\n\n')
     for clause in clauses:
         for literal in solution:
@@ -168,8 +133,56 @@ if not contradiction:
                 line = str(clauses.index(clause) + 3)
                 f.writelines(str(literal) + ' satisfies ' + str(clause) + ' on line ' + line + '.\n')
                 break
-    
+
     # we are happy
     f.writelines('\nSo the circuit is satisfiable.')
-    
-f.close()
+    f.close()
+
+def write_contradiction_proof(components, clauses, problem_name):
+    f = open(problem_name + '_output.txt', 'w')
+    for component in components:
+        for i in component:
+            if -i in component:
+                # forward
+                f.writelines('Contradiction: ' + str(i) + ' -> ' + str(-i) + ' and ' + str(-i) + ' -> ' + str(i) + '\n\n')
+                f.writelines('Proof:\n' + 'We will show that ' + str(i) + ' -> ' + str(-i) + '.\n')
+
+                path = next(bfs_paths(graph, i, -i))
+                for first, second in zip(path, path[1:]):
+                    implication = str(first) + ' -> ' + str(second)
+                    if (-first, second) in clauses:
+                        reason = str((-first, second))
+                        line_number = str(clauses.index((-first, second)) + 3)
+                    elif (second, -first) in clauses:
+                        reason = str((second, -first))
+                        line_number = str(clauses.index((second, -first)) + 3)
+                    else:
+                        f.writelines('Error in proof!')
+                        break
+                    f.writelines('By ' + reason + ' on line ' + line_number + ', ' + implication + '.\n')
+
+                # backward
+                f.writelines('\nSo ' + str(i) + ' -> ' + str(-i) + '. We will now show that ' + str(-i) + ' -> ' + str(i) + '.\n')
+
+                path = next(bfs_paths(graph, -i, i))
+                for first, second in zip(path, path[1:]):
+                    implication = str(first) + ' -> ' + str(second)
+                    if (-first, second) in clauses:
+                        reason = str((-first, second))
+                        line_number = str(clauses.index((-first, second)) + 3)
+                    elif (second, -first) in clauses:
+                        reason = str((second, -first))
+                        line_number = str(clauses.index((second, -first)) + 3)
+                    else:
+                        f.writelines('Error in proof!')
+                        break
+                    f.writelines('By ' + reason + ' on line ' + line_number + ', ' + implication + '.\n')
+
+                # the unavoidable conclusion
+                f.writelines('\nTherefore, the circuit is unsatisfiable.')
+            return
+
+if contradiction:
+    write_contradiction_proof(bad_components, clauses, problem_name)
+else:
+    write_satisfaction_proof(solution, clauses, problem_name)

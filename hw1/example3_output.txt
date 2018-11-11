@@ -1,0 +1,10 @@
+Contradiction: 2 -> -2 and -2 -> 2
+
+Proof:
+We will show that 2 -> -2.
+By (-2, 3) on line 7, 2 -> 3.
+By (-3, -4) on line 3, 3 -> -4.
+By (-3, 4) on line 4, -4 -> -3.
+By (-2, 3) on line 7, -3 -> -2.
+
+So 2 -> -2. We will now show that -2 -> 2.
