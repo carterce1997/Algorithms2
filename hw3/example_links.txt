@@ -1,4 +1,4 @@
-example 3: https://www.cs.princeton.edu/courses/archive/spring13/cos423/lectures/07DemoFordFulkerson.pdf
-example 4: https://www.cs.mcgill.ca/~tdeeri/360/a3_solutions.html
-example 5: https://www.me.utexas.edu/~jensen/methods/net.pdf/netmaxf.pdf
+example 3: https://www.cs.princeton.edu/courses/archive/spring13/cos423/lectures/07DemoFordFulkerson.pdf    max flow = 19
+example 4: https://www.cs.mcgill.ca/~tdeeri/360/a3_solutions.html     max flow = 6
+example 5: https://www.me.utexas.edu/~jensen/methods/net.pdf/netmaxf.pdf     max flow = 15
 
