@@ -1,0 +1,15 @@
+Contradiction: 2 -> -2 and -2 -> 2
+
+Proof:
+We will show that 2 -> -2.
+By (-2, 32) on line 1732, 2 -> 32.
+By (103, -32) on line 757, 32 -> 103.
+By (-103, 9) on line 2879, 103 -> 9.
+By (-9, -2) on line 1898, 9 -> -2.
+
+So 2 -> -2. We will now show that -2 -> 2.
+By (141, 2) on line 4710, -2 -> 141.
+By (-443, -141) on line 3885, 141 -> -443.
+By (443, 2) on line 830, -443 -> 2.
+
+Therefore, the circuit is unsatisfiable.

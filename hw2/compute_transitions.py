@@ -20,8 +20,6 @@ def compute_transitions(input_str, trasition_mat, emissions):
     #for i in range(0,rows):
     #    transitions[i,0] = emission_mat[input_str[0],i] * (1.0/float(rows))
 
-    print(emission_mat)
-
     for idx in range(1, len_input_str):
         prob_max = 0
         prob_max_idx = 0
