@@ -15,7 +15,8 @@ for line in lines:
     if not subchain == []:
         chain.append(subchain)
 chain = np.array(chain)
-print('Transition matrix:', chain)
+print('Transition matrix:')
+print(chain)
 
 # read probability of heads
 with open('emit_ex.txt', 'r') as f:
