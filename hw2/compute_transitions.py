@@ -11,32 +11,48 @@ def compute_transitions(input_str, trasition_mat, emissions):
     len_input_str = len(input_str)
 
     transition_probabilities = np.zeros(shape=(num_hidden_states,len_input_str))
+    transition_path = np.zeros(shape=(num_hidden_states,len_input_str))
     indices = np.zeros(len_input_str, dtype=int)
 
-    transition_probabilities[0,0] = 1
-    indices[0] = 0
+    #transition_probabilities[0,0] = 1
+    #indices[0] = 0
 
     # Equalizes init probability
-    #for i in range(0,rows):
-    #    transitions[i,0] = emission_mat[input_str[0],i] * (1.0/float(rows))
+    for idx in range(0,num_hidden_states):
+        transition_probabilities[idx,0] = emission_mat[input_str[0],idx]
 
     print(emission_mat)
 
     for idx in range(1, len_input_str):
-        prob_max = 0
-        prob_max_idx = 0
-
         for state in range(num_hidden_states):
-
             emission_prob = emission_mat[input_str[idx], state]
-            transition_prob = trasition_mat[state, indices[idx-1]]
-            prob = transition_prob * emission_prob 
+
+            prob_max = trasition_mat[state, 0] * emission_prob * transition_probabilities[0, idx-1] 
+            prob_max_idx = 0
+
+            for state_prev in range(1,num_hidden_states):
+                prob = trasition_mat[state, state_prev] * emission_prob * transition_probabilities[state_prev, idx-1] 
             
-            if prob > prob_max:
-                prob_max = prob
-                prob_max_idx = state 
-            transition_probabilities[state, idx] = prob
-        indices[idx] = prob_max_idx
+                if prob > prob_max:
+                    prob_max = prob
+                    prob_max_idx = state_prev
+                    
+            transition_probabilities[state, idx] = prob_max 
+            transition_path[state,idx] = prob_max_idx
+        #indices[idx] = prob_max_idx
+
+    opt_prob = transition_probabilities[0,len_input_str-1]
+    opt_idx = 0
+    for state in range(1,num_hidden_states):
+        if transition_probabilities[state,len_input_str-1] > opt_prob:
+            opt_prob = transition_probabilities[state,len_input_str-1]
+            opt_idx = state
+
+    opt_prev = opt_idx
+    indices[len_input_str-1] = opt_prev
+    for idx in range(len_input_str-1,0,-1):
+        opt_prev = int(transition_path[opt_prev,idx])
+        indices[idx-1] = opt_prev
 
     print('Most probable state sequence:', indices)
     print('Transition probabilities:\n', transition_probabilities.T)
