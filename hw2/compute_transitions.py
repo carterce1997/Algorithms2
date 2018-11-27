@@ -1,7 +1,10 @@
 import numpy as np
 
+# input_str is a list of the actual observed coin tosses, ex: [1 0 1 0 1 0 0 0 1 1]
+# emissionMatrix is the probably of each coin showing a head (or the bias).
+# transitionMatrix is the probability of the next coin based on the current coin. 
 def compute_transitions(input_str, trasition_mat, emissions):
-
+    # Making emissions a matrix. 
     emission_mat = np.zeros(shape=(len(emissions),len(emissions)))
     for j, emission_probability in enumerate(emissions):
         emission_mat[0,j] = emission_probability
