@@ -1,9 +1,10 @@
 import numpy as np
 from cvxopt import blas, lapack, solvers, matrix
 from collections import defaultdict
+import pygraphviz as pgv
 
 # read graph into list
-graph_file = 'ex.txt'
+graph_file = 'graph.txt'
 
 lines = []
 with open(graph_file, 'r') as f:
@@ -158,4 +159,29 @@ r = r / np.sqrt(np.sum(np.square(r)))
 # generate cut
 solved_cut = np.sign(r.dot(v))
 
-print(solved_cut)
+cut = defaultdict(set)
+for i, val in enumerate(solved_cut):
+    cut[val].add(i)
+
+cut_edges = set()
+for v in cut[1]:
+    for u in graph[v]:
+        if v < u:
+            cut_edges.add((v, u))
+        else:
+            cut_edges.add((u, v))
+
+cut_value = len(cut_edges)
+
+print('Cut value:', cut_value)
+
+# save graph cover
+G = pgv.AGraph(graph_file)
+for v in cut[1]:
+    G.get_node(v).attr['color'] = 'red'
+
+for e in cut_edges:
+    u, v = e
+    G.get_edge(u, v).attr['color'] = 'red'
+
+G.draw(graph_file.split('.')[0] + '.png', prog = 'neato', args = '-Goverlap=scale')
