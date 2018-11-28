@@ -26,6 +26,7 @@ def BFS(ResidualNetwork, start, end):
             # Make sure that this edge's flow is > 0
             if ResidualNetwork[vertex][node] > 0 and node not in visited:
                 if node == end:
+                    print(path)
                     return path + [end]
                 else:
                     visited.add(node)
@@ -43,19 +44,21 @@ def FordFulkerson(ResidualNetwork, FlowGraph, source, sink):
             end = augmentedPath[i+1]
             bottleneckFlow = min(bottleneckFlow, ResidualNetwork[start][end])
 
-        # For each edge in augmentedPath. augmentedPath is in order
+        # For each edge in augmentedPath.
         for i in range( len(augmentedPath)-1 ):
             start = augmentedPath[i]
             end = augmentedPath[i+1]
             ResidualNetwork[start][end] -= bottleneckFlow 
             ResidualNetwork[end][start] += bottleneckFlow 
 
+            print("start="+str(start) + "   end="+str(end))
+
             if start in FlowGraph.keys():
                 FlowGraph[start][end] += bottleneckFlow
             else:
                 FlowGraph[end][start] -= bottleneckFlow
 
-        #print("Path: " + str(augmentedPath))
+        print("Path: " + str(augmentedPath))
         #print("bottleneckFlow: " + str(bottleneckFlow))
         #print("ResidualNetwork network: ")
         #pprint(ResidualNetwork)
@@ -85,7 +88,7 @@ for fileLine in fileLines:
 FlowGraph = defaultdict(dict)
 ResidualNetwork = defaultdict(dict)
 
-for i in range( 1, len(graphlines)-2):
+for i in range( 1, len(graphlines)-1):
     source = int(graphlines[i][0])
     dest = int(graphlines[i][2])
     capacity = int(graphlines[i][3].split("\"")[1])
@@ -94,13 +97,30 @@ for i in range( 1, len(graphlines)-2):
     FlowGraph[source].update({dest : 0})
 
     # Create starting residual network.
-    ResidualNetwork[source].update({dest : capacity})
+    ResidualNetwork[source].update({dest : 0})
     ResidualNetwork[dest].update({source : 0})
+
+for i in range( 1, len(graphlines)-1):
+    source = int(graphlines[i][0])
+    dest = int(graphlines[i][2])
+    capacity = int(graphlines[i][3].split("\"")[1])
+
+    # Create starting residual network.
+    ResidualNetwork[source].update({dest : capacity})    
 
 FlowGraph = dict(FlowGraph)
 ResidualNetwork = dict(ResidualNetwork)
 
 source = int(graphlines[1][0])
-sink = int(graphlines[len(graphlines)-3][2])
+sink = int(graphlines[len(graphlines)-2][2])
+
+for line in graphlines:
+    print(line)
+
+print(source)
+print(sink)
 
 FordFulkerson(ResidualNetwork, FlowGraph, source, sink)
+pprint(FlowGraph)
+print()
+pprint(ResidualNetwork)
