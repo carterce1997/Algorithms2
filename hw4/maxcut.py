@@ -1,5 +1,5 @@
 import numpy as np
-from cvxopt import matrix, solvers
+from cvxopt import blas, lapack, solvers, matrix
 from collections import defaultdict
 
 graph_file = 'ex.txt'
@@ -28,14 +28,12 @@ def adj_matrix(graph):
     for first in graph:
         for second in graph[first]:
             W[first-1, second-1] = 1
-    return matrix(W)
+    return W
 
-W = adj_matrix(graph)
-print(W)
+w = adj_matrix(graph)
+n = w.shape[0]
 
-
-from cvxopt import blas, lapack, solvers, matrix
-
+# I found this online
 def mcsdp(w):
     """
     Returns solution x, z to
@@ -146,7 +144,13 @@ def mcsdp(w):
     sol = solvers.conelp(c, G, w[:], dims, kktsolver = F)
     return sol['x'], sol['z']
 
+soln = mcsdp(matrix(w))
+x, z = soln[0], soln[1]
 
-x, z = mcsdp(W)
+z = np.reshape(z, (n, n))
+v = np.linalg.cholesky(z).T
 
-print(matrix(z, nrow = 3))
+r = np.random.uniform(size = n)
+r = r / np.sqrt(np.sum(np.square(r)))
+
+print(np.sign(r.dot(v)))
