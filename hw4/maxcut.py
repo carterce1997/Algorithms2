@@ -143,6 +143,7 @@ def mcsdp(w):
     return sol['x'], sol['z']
 
 # solve SDP
+n = w.shape[0]
 soln = mcsdp(matrix(w))
 x, z = soln[0], soln[1]
 
@@ -151,7 +152,6 @@ z = np.reshape(z, (n, n))
 v = np.linalg.cholesky(z).T
 
 # generate random hyperplane
-n = w.shape[0]
 r = np.random.uniform(-1, 1, size = n)
 r = r / np.sqrt(np.sum(np.square(r)))
 
