@@ -2,6 +2,7 @@ import numpy as np
 from cvxopt import blas, lapack, solvers, matrix
 from collections import defaultdict
 
+# read graph into list
 graph_file = 'ex.txt'
 
 lines = []
@@ -17,23 +18,20 @@ for line in lines:
     splitted = line.split(' -- ')
     pairs.append((int(splitted[0]), int(splitted[1])))
 
+# dump graph into dict structure
 graph = defaultdict(set)
 for pair in pairs:
     first, second = pair
     graph[first].add(second)
     graph[second].add(first)
 
-def adj_matrix(graph):
-    W = np.zeros((len(graph), len(graph)))
-    for first in graph:
-        for second in graph[first]:
-            W[first-1, second-1] = 1
-    return W
+# build adjacency matrix
+w = np.zeros((len(graph), len(graph)))
+for first in graph:
+    for second in graph[first]:
+        w[first-1, second-1] = 1
 
-w = adj_matrix(graph)
-n = w.shape[0]
-
-# I found this online
+# I found this esoteric obfuscated code online
 def mcsdp(w):
     """
     Returns solution x, z to
@@ -144,13 +142,20 @@ def mcsdp(w):
     sol = solvers.conelp(c, G, w[:], dims, kktsolver = F)
     return sol['x'], sol['z']
 
+# solve SDP
 soln = mcsdp(matrix(w))
 x, z = soln[0], soln[1]
 
+# Cholesky decompose solution matrix
 z = np.reshape(z, (n, n))
 v = np.linalg.cholesky(z).T
 
-r = np.random.uniform(size = n)
+# generate random hyperplane
+n = w.shape[0]
+r = np.random.uniform(-1, 1, size = n)
 r = r / np.sqrt(np.sum(np.square(r)))
 
-print(np.sign(r.dot(v)))
+# generate cut
+solved_cut = np.sign(r.dot(v))
+
+print(solved_cut)
