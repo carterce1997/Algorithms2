@@ -16,6 +16,9 @@ def compute_transitions(coin_tosses, trasition_mat, emissions):
         emission_mat[HEADS,coin] = 1 - emission_probability
         emission_mat[TAILS,coin] = emission_probability
 
+    # The ith row and jth column represents the ith hidden state (node) and the jth element of the input. 
+
+    # num_hidden_states is nodes in hidden markov model.
     num_hidden_states = emission_mat.shape[1]
     len_coin_tosses = len(coin_tosses)
 
@@ -50,15 +53,18 @@ def compute_transitions(coin_tosses, trasition_mat, emissions):
             transition_path[state,idx] = prob_max_idx
         #indices[idx] = prob_max_idx
 
+
+    # Finding highest probability of the last element in the input (column).
     opt_prob = transition_probabilities[0,len_coin_tosses-1]
     opt_idx = 0
     for state in range(1,num_hidden_states):
         if transition_probabilities[state,len_coin_tosses-1] > opt_prob:
             opt_prob = transition_probabilities[state,len_coin_tosses-1]
             opt_idx = state
-
     opt_prev = opt_idx
     indices[len_coin_tosses-1] = opt_prev
+
+    # Uses the path to trace how we got there
     for idx in range(len_coin_tosses-1,0,-1):
         opt_prev = int(transition_path[opt_prev,idx])
         indices[idx-1] = opt_prev
