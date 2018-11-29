@@ -1,33 +1,37 @@
 import numpy as np
 from compute_transitions import compute_transitions
 
-# READ PROBLEM #
-# read chain
-with open('chain_ex.txt', 'r') as f:
-    lines = f.readlines()
-    f.close()
+# READ IN PROBLEM #
 
-chain = []
+# Read in transition matrix file.
+lines = []
+with open('chain_ex.txt', 'r') as file:
+    lines = file.readlines()
+    file.close()
+
+# The transitionMatrix determines the probability of 
+# the next coin based on the current coin. 
+transitionMatrix = []
 for line in lines:
     subchain = []
-    for p in line.split():
-        subchain.append(float(p))
+    for number in line.split():
+        subchain.append(float(number))
     if not subchain == []:
-        chain.append(subchain)
-chain = np.array(chain)
+        transitionMatrix.append(subchain)
+
+transitionMatrix = np.array(transitionMatrix)
 print('Transition matrix:')
-print(chain)
+print(transitionMatrix)
 
-# read probability of heads
-with open('emit_ex.txt', 'r') as f:
-    line = f.read()
-    f.close()
+# Read emissions (the probability of heads for each coin).
+with open('emit_ex.txt', 'r') as file:
+    line = file.read()
+    file.close()
 
-emit = np.array(list(map(float, line.split())))
-    
-print('Emission matrix:', emit)
+emissions = np.array(list(map(float, line.split())))  
+print('Emission matrix:', emissions)
 
-# read coin tosses
+# Read observed coin tosses.
 with open('obs_ex.txt', 'r') as f:
     contents = f.read()
     f.close()
@@ -37,4 +41,4 @@ coin_tosses = np.array(list(map(int, contents.split(' '))))
 print('Coin tosses:', coin_tosses)
 
 # ALGORITHMIC IMPLEMENTATION #
-compute_transitions(coin_tosses, chain, emit)
+compute_transitions(coin_tosses, transitionMatrix, emissions)
