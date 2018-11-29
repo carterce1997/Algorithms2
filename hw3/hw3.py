@@ -12,6 +12,9 @@ outputFilename = sys.argv[2]
 #   2: {3: 20}
 # }
 def BFS(ResidualNetwork, start, end):
+    if start == end:
+        return [start]
+
     # Create a queue for vertices and their shortest path to them.
     queue = [ (start, [start]) ]
     visited = set()
@@ -30,6 +33,19 @@ def BFS(ResidualNetwork, start, end):
                     visited.add(node)
                     queue.append( (node, path + [node]) )
     return None
+
+def findMinCut(ResidualNetwork, source):
+    startCut = set()
+    endCut = set()
+
+    # All vertices lie in the residual network keys.
+    for vertex in ResidualNetwork.keys():
+        if BFS(ResidualNetwork, source, vertex) is not None:
+            startCut.add(vertex)
+        else:
+            endCut.add(vertex)
+    return startCut, endCut
+
 
 
 def FordFulkerson(ResidualNetwork, FlowGraph, source, sink):
@@ -61,10 +77,10 @@ def FordFulkerson(ResidualNetwork, FlowGraph, source, sink):
                 else:
                     print("ERROR")
 
-        print("Path: " + str(augmentedPath))
-        #print("bottleneckFlow: " + str(bottleneckFlow))
-        #print("ResidualNetwork network: ")
-        #pprint(ResidualNetwork)
+        # print("Path: " + str(augmentedPath))
+        # print("bottleneckFlow: " + str(bottleneckFlow))
+        # print("ResidualNetwork network: ")
+        # pprint(ResidualNetwork)
 
         augmentedPath = BFS(ResidualNetwork, source, sink)
 
@@ -113,7 +129,15 @@ for i in range( 1, len(graphlines)-2):
 FlowGraph = dict(FlowGraph)
 ResidualNetwork = dict(ResidualNetwork)
 
-source = int(graphlines[1][0])
-sink = int(graphlines[len(graphlines)-3][2])
+source = min(ResidualNetwork.keys())
+sink = max(ResidualNetwork.keys())
 
+# Find the max flow and the final residual graph.
 FordFulkerson(ResidualNetwork, FlowGraph, 0, 199)
+
+startCut, endCut = findMinCut(ResidualNetwork, source)
+print("Start cut:")
+print(startCut)
+print()
+print("End cut:")
+print(endCut)
