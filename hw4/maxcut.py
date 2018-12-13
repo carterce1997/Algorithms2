@@ -174,6 +174,7 @@ for v in cut[1]:
 cut_value = len(cut_edges)
 
 print('Cut value:', cut_value)
+print('Optimum Value:', - w.dot(z).trace() / 2)
 
 # save graph cover
 G = pgv.AGraph(graph_file)
