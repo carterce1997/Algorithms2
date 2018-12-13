@@ -2,6 +2,8 @@ import numpy as np
 from cvxopt import blas, lapack, solvers, matrix
 from collections import defaultdict
 import pygraphviz as pgv
+import time
+from matplotlib import pyplot as plt
 
 # read graph into list
 graph_file = 'graph.txt'
@@ -153,11 +155,12 @@ z = np.reshape(z, (n, n))
 v = np.linalg.cholesky(z).T
 
 # generate random hyperplane
-r = np.random.uniform(-1, 1, size = n)
-r = r / np.sqrt(np.sum(np.square(r)))
+np.random.seed(int(time.time()))
+r = np.random.normal(size = n)
 
 # generate cut
-solved_cut = np.sign(r.dot(v))
+unsigned_cut = r.dot(v.T)
+solved_cut = np.sign(unsigned_cut)
 
 cut = defaultdict(set)
 for i, val in enumerate(solved_cut):
@@ -173,8 +176,9 @@ for v in cut[1]:
 
 cut_value = len(cut_edges)
 
+opt_value = - w.dot(z).trace() / 2
 print('Cut value:', cut_value)
-print('Optimum Value:', - w.dot(z).trace() / 2)
+print('Optimum Value:', opt_value)
 
 # save graph cover
 G = pgv.AGraph(graph_file)
