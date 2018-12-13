@@ -1,61 +1,84 @@
 import numpy as np
 
-# input_str is a list of the actual observed coin tosses, ex: [1 0 1 0 1 0 0 0 1 1]
-# emissionMatrix is the probably of each coin showing a head (or the bias).
-# transitionMatrix is the probability of the next coin based on the current coin. 
-def compute_transitions(input_str, trasition_mat, emissions):
-    # Making emissions a matrix. 
-    emission_mat = np.zeros(shape=(len(emissions),len(emissions)))
-    for j, emission_probability in enumerate(emissions):
-        emission_mat[0,j] = emission_probability
-        emission_mat[1,j] = 1 - emission_probability
+HEADS = 1
+TAILS = 0
+NUM_SIDES_OF_COIN = 2
 
-    num_hidden_states = emission_mat.shape[1]
-    len_input_str = len(input_str)
+# coin_tosses is a list of the actual observed coin tosses, 
+#   ex: [1 0 1 0 1 0 0 0 1 1]
+# trasition_matrix is the probability of the next coin based on the current coin.
+#   ex: [ [.75 .9] [.25 .1] ]
+# emissions is the probably of each coin showing a head (or the bias).
+#   ex: [.5 .5]
+def compute_transitions(coin_tosses, trasition_matrix, emissions):
+    # emission_matrix[0][y] represents the probability of the yth coin showing a head
+    # emission_matrix[1][y] represents the probability of the yth coin showing a tail
+    emission_matrix = np.zeros(shape=(NUM_SIDES_OF_COIN, len(emissions)))
+    for coin_number, emission_probability in enumerate(emissions):
+        emission_matrix[HEADS, coin_number] = 1 - emission_probability
+        emission_matrix[TAILS, coin_number] = emission_probability
+    
+    # num_states is number of coins in hidden markov model.
+    num_states = emission_matrix.shape[1]
+    print("Number of coins:", num_states)
 
-    transition_probabilities = np.zeros(shape=(num_hidden_states,len_input_str))
-    transition_path = np.zeros(shape=(num_hidden_states,len_input_str))
-    indices = np.zeros(len_input_str, dtype=int)
+    # num_coin_tosses is the number of observed coin tosses.
+    num_coin_tosses = len(coin_tosses)
+    print("Number of coin tosses:", num_coin_tosses, "\n")
 
-    #transition_probabilities[0,0] = 1
-    #indices[0] = 0
+    # Create a matrix for the state/probability transitions.
+    transition_prob_matrix = np.zeros(shape=(num_states, num_coin_tosses))
 
-    # Equalizes init probability
-    for idx in range(0,num_hidden_states):
-        transition_probabilities[idx,0] = emission_mat[input_str[0],idx]
+    # Create a path (2D matrix) describing the optimal path through the HMM.
+    # Transition matrix is M x N where M is the number of coins, and N is the 
+    # number of coin tosses performed.
+    optimal_transition_path = np.zeros(shape=(num_states, num_coin_tosses))
 
-    print(emission_mat)
+    # Create a path (1D) for the most probable state (coin) sequence.
+    optimal_transitions = np.zeros(num_coin_tosses, dtype=int)
 
-    for idx in range(1, len_input_str):
-        for state in range(num_hidden_states):
-            emission_prob = emission_mat[input_str[idx], state]
+    #optimal_transitions[0] = 0
 
-            prob_max = trasition_mat[state, 0] * emission_prob * transition_probabilities[0, idx-1] 
-            prob_max_idx = 0
+    # Equalizes initial probability
+    for index in range(0, num_states):
+        transition_prob_matrix[index, 0] = emission_matrix[coin_tosses[0], index]
 
-            for state_prev in range(1,num_hidden_states):
-                prob = trasition_mat[state, state_prev] * emission_prob * transition_probabilities[state_prev, idx-1] 
+    # Print emmission_matrix
+    print("Emission Matrix: \n", emission_matrix)
+
+    # Iterate through the sequence of coin tosses using dynamic programming.
+    for index in range(1, num_coin_tosses):
+        for state in range(num_states):
+            emission_prob = emission_matrix[coin_tosses[index], state]
+
+            prob_max = trasition_matrix[state, 0] * emission_prob * transition_prob_matrix[0, index-1] 
+            prob_max_index = 0
+
+            for previous_state in range(1, num_states):
+                prob = trasition_matrix[state, previous_state] * emission_prob * transition_prob_matrix[previous_state, index-1] 
             
                 if prob > prob_max:
                     prob_max = prob
-                    prob_max_idx = state_prev
+                    prob_max_index = previous_state
                     
-            transition_probabilities[state, idx] = prob_max 
-            transition_path[state,idx] = prob_max_idx
-        #indices[idx] = prob_max_idx
+            transition_prob_matrix[state, index] = prob_max 
+            optimal_transition_path[state, index] = prob_max_index
+        #optimal_transitions[index] = prob_max_index
 
-    opt_prob = transition_probabilities[0,len_input_str-1]
-    opt_idx = 0
-    for state in range(1,num_hidden_states):
-        if transition_probabilities[state,len_input_str-1] > opt_prob:
-            opt_prob = transition_probabilities[state,len_input_str-1]
-            opt_idx = state
+    # Finding highest probability of the last element in the input (column).
+    optimal_probability = transition_prob_matrix[0, num_coin_tosses-1]
+    optimal_end_state = 0
+    for state in range(1, num_states):
+        if transition_prob_matrix[state, num_coin_tosses-1] > optimal_probability:
+            optimal_probability = transition_prob_matrix[state, num_coin_tosses-1]
+            optimal_end_state = state
+    optimal_prev = optimal_end_state
+    optimal_transitions[num_coin_tosses-1] = optimal_prev
 
-    opt_prev = opt_idx
-    indices[len_input_str-1] = opt_prev
-    for idx in range(len_input_str-1,0,-1):
-        opt_prev = int(transition_path[opt_prev,idx])
-        indices[idx-1] = opt_prev
+    # Uses the path to trace how we got there. 
+    # Start at last transition, end at first transition.
+    for index in range(num_coin_tosses-1, 0, -1):
+        optimal_transitions[index-1] = int(optimal_transition_path[optimal_prev, index])
 
-    print('Most probable state sequence:', indices)
-    print('Transition probabilities:\n', transition_probabilities.T)
+    print('Most probable state sequence:', optimal_transitions)
+    print('Transition probabilities:\n', transition_prob_matrix.T)

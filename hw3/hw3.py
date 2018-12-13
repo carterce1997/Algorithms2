@@ -1,5 +1,4 @@
 import sys
-from write_graph import write_graph
 from collections import defaultdict
 from pprint import pprint 
 
@@ -13,6 +12,9 @@ outputFilename = sys.argv[2]
 #   2: {3: 20}
 # }
 def BFS(ResidualNetwork, start, end):
+    if start == end:
+        return [start]
+
     # Create a queue for vertices and their shortest path to them.
     queue = [ (start, [start]) ]
     visited = set()
@@ -26,19 +28,31 @@ def BFS(ResidualNetwork, start, end):
             # Make sure that this edge's flow is > 0
             if ResidualNetwork[vertex][node] > 0 and node not in visited:
                 if node == end:
-                    print(path)
                     return path + [end]
                 else:
                     visited.add(node)
                     queue.append( (node, path + [node]) )
     return None
 
+def findMinCut(ResidualNetwork, source):
+    startCut = set()
+    endCut = set()
+
+    # All vertices lie in the residual network keys.
+    for vertex in ResidualNetwork.keys():
+        if BFS(ResidualNetwork, source, vertex) is not None:
+            startCut.add(vertex)
+        else:
+            endCut.add(vertex)
+    return startCut, endCut
+
+
 
 def FordFulkerson(ResidualNetwork, FlowGraph, source, sink):
     augmentedPath = BFS(ResidualNetwork, source, sink)
     while augmentedPath is not None:
         # Find the maximum possible flow on this path.
-        bottleneckFlow = sys.maxsize
+        bottleneckFlow = ResidualNetwork[0][1]
         for i in range( len(augmentedPath)-1 ):
             start = augmentedPath[i]
             end = augmentedPath[i+1]
@@ -50,18 +64,23 @@ def FordFulkerson(ResidualNetwork, FlowGraph, source, sink):
             end = augmentedPath[i+1]
             ResidualNetwork[start][end] -= bottleneckFlow 
             ResidualNetwork[end][start] += bottleneckFlow 
-
-            print("start="+str(start) + "   end="+str(end))
-
+            
+            # Check if edge is in input graph.
             if start in FlowGraph.keys():
-                FlowGraph[start][end] += bottleneckFlow
+                if end in FlowGraph[start].keys():
+                    FlowGraph[start][end] += bottleneckFlow
+                else:
+                    print("ERROR")
             else:
-                FlowGraph[end][start] -= bottleneckFlow
+                if start in FlowGraph[end].keys():
+                    FlowGraph[end][start] -= bottleneckFlow
+                else:
+                    print("ERROR")
 
-        print("Path: " + str(augmentedPath))
-        #print("bottleneckFlow: " + str(bottleneckFlow))
-        #print("ResidualNetwork network: ")
-        #pprint(ResidualNetwork)
+        # print("Path: " + str(augmentedPath))
+        # print("bottleneckFlow: " + str(bottleneckFlow))
+        # print("ResidualNetwork network: ")
+        # pprint(ResidualNetwork)
 
         augmentedPath = BFS(ResidualNetwork, source, sink)
 
@@ -70,9 +89,6 @@ def FordFulkerson(ResidualNetwork, FlowGraph, source, sink):
         maxFlow += FlowGraph[source][dest]
 
     print("Max Flow = " + str(maxFlow))
-
-    write_graph(ResidualNetwork, outputFilename)
-
 
 
 # READ GRAPH #
@@ -88,7 +104,8 @@ for fileLine in fileLines:
 FlowGraph = defaultdict(dict)
 ResidualNetwork = defaultdict(dict)
 
-for i in range( 1, len(graphlines)-1):
+# Initialize all edges to 0.
+for i in range( 1, len(graphlines)-2):
     source = int(graphlines[i][0])
     dest = int(graphlines[i][2])
     capacity = int(graphlines[i][3].split("\"")[1])
@@ -100,7 +117,8 @@ for i in range( 1, len(graphlines)-1):
     ResidualNetwork[source].update({dest : 0})
     ResidualNetwork[dest].update({source : 0})
 
-for i in range( 1, len(graphlines)-1):
+# Go back over all edges initializing residual graph.
+for i in range( 1, len(graphlines)-2):
     source = int(graphlines[i][0])
     dest = int(graphlines[i][2])
     capacity = int(graphlines[i][3].split("\"")[1])
@@ -111,16 +129,15 @@ for i in range( 1, len(graphlines)-1):
 FlowGraph = dict(FlowGraph)
 ResidualNetwork = dict(ResidualNetwork)
 
-source = int(graphlines[1][0])
-sink = int(graphlines[len(graphlines)-2][2])
+source = min(ResidualNetwork.keys())
+sink = max(ResidualNetwork.keys())
 
-for line in graphlines:
-    print(line)
+# Find the max flow and the final residual graph.
+FordFulkerson(ResidualNetwork, FlowGraph, 0, 199)
 
-print(source)
-print(sink)
-
-FordFulkerson(ResidualNetwork, FlowGraph, source, sink)
-pprint(FlowGraph)
+startCut, endCut = findMinCut(ResidualNetwork, source)
+print("Start cut:")
+print(startCut)
 print()
-pprint(ResidualNetwork)
+print("End cut:")
+print(endCut)

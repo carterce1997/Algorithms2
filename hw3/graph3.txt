@@ -9,3 +9,4 @@ digraph {
 	4 -> 3 [label="6"];
 	4 -> 5 [label="10"];
 }
+
